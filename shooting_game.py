@@ -45,6 +45,14 @@ img_explode = [
 img_weapon = pygame.image.load("image/weapon_0.png")
 img_title = pygame.image.load("image/title.png")
 
+# ******************** 効果音 ********************
+snd_pl_bullet = None    # プレイヤーが弾を打つ音
+snd_pl_damage = None    # プレイヤーのダメージ音
+snd_emy_bullet = None   # 敵が弾を打つ音
+snd_emy_damage = None   # 敵のダメージ音
+snd_emy_muteki = None   # 無敵状態の弾をはじく音
+snd_blk_damage = None   # ブロックのダメージ音
+
 # ******************** 変数／定数の宣言 ********************
 idx = 0
 tmr = 0
@@ -110,7 +118,7 @@ EMY_NORMAL_SPEED = 6
 EMY_HIGH_SPEED = 10
 # 敵のシールド
 EMY_SHIELD = 5
-BOSS_SHIELD = 30
+BOSS_SHIELD = 15
 # =============== ENEMY(BULLET) ===============
 # 弾(敵)
 EFFECT_MAX = 100            # 爆発の最大数
@@ -234,6 +242,7 @@ def move_player(sc, key):
     # 弾を発射するか
     click_1 = (click_1+1) * mBtn_1
     if click_1%3 == 1:
+        snd_pl_bullet.play()
         set_missile()
     # プレイヤーの機体を描く(点滅)
     if pl_muteki%2 == 0:
@@ -243,7 +252,7 @@ def move_player(sc, key):
         pl_muteki -= 1
         return
 
-    # 敵と弾のヒットチェック
+    # 敵の弾とのヒットチェック
     for i in range(ENEMY_MAX):
         if emy_f[i] == True:
             w = img_enemy[emy_type[i]].get_width()
@@ -251,6 +260,7 @@ def move_player(sc, key):
             r = int((w+h)/4 + (80+80)/4)
             # ヒットチェック
             if get_dis(emy_x[i], emy_y[i], pl_x, pl_y) < r*r:
+                snd_pl_damage.play()
                 set_effect(pl_x, pl_y, False)
                 pl_shield -= 1
                 # シールドが0の場合はゲームオーバー
@@ -450,13 +460,18 @@ def move_enemy(sc):
                 r = int((w+h)/4)+15
 
                 for j in range(MISSILE_MAX):
+                    # ヒットチェック
                     if msl_f[j] == True and get_dis(emy_x[i], emy_y[i], msl_x[j], msl_y[j]) < r*r:
                         msl_f[j] = False
-                        # ボスの無敵状態以外
-                        if emy_type[i] != BOSS_MUTEKI:
+                        # ボスの無敵状態
+                        if emy_type[i] == BOSS_MUTEKI:
+                            snd_emy_muteki.play()
+                        # 無敵状態以外
+                        else:
                             if emy_type[i] >= 3:
                                 set_effect(emy_x[i], emy_y[i], True)
                             if emy_type[i] >= 1:
+                                snd_emy_damage.play()
                                 emy_shield[i] -= 1
 
                             if emy_shield[i] <= 0:
@@ -488,8 +503,10 @@ def set_bullet(no):
         if tmr%5 == 0:
             rand_num = random.randint(0, 10)
             if rand_num <= 2:
+                snd_emy_bullet.play()
                 set_enemy(emy_x[no], emy_y[no], BUL_STRAIGHT_0, emy_a[no], EMY_HIGH_SPEED, BUL_SHIELD_1)
             else:
+                snd_emy_bullet.play()
                 set_enemy(emy_x[no], emy_y[no], BUL_STRAIGHT_1, emy_a[no], EMY_HIGH_SPEED, BUL_SHIELD_1)
 
     if idx == 2 and tmr > 10:
@@ -498,19 +515,23 @@ def set_bullet(no):
         rand_a = random.randint(0, 360)
 
         if rand_num <= 2:
+            snd_emy_bullet.play()
             set_enemy(emy_x[no], emy_y[no], BUL_STRAIGHT_0, rand_a, EMY_HIGH_SPEED, BUL_SHIELD_1)
         else:
+            snd_emy_bullet.play()
             set_enemy(emy_x[no], emy_y[no], BUL_STRAIGHT_1, rand_a, EMY_HIGH_SPEED, BUL_SHIELD_1)
 
     if idx == 3 and tmr > 10:
         # ボス：ランダムの角度に打つ
         if emy_type[no] == BOSS or emy_type[no] == BOSS_MUTEKI:
             if tmr%2 == 0:
+                snd_emy_bullet.play()
                 rand_a = random.randint(0, 360)
                 set_enemy(emy_x[no], emy_y[no], BUL_STRAIGHT_0, rand_a, BUL_NORMAL_SPEED, BUL_SHIELD_1)
         # 敵：プレイヤーに向かって打つ
         else:
             if tmr%30 == 0:
+                snd_emy_bullet.play()
                 set_enemy(emy_x[no], emy_y[no], BUL_STRAIGHT_1, emy_a[no], BUL_NORMAL_SPEED, BUL_SHIELD_1)
 
     if idx == 4 and tmr > 10:
@@ -521,6 +542,7 @@ def set_bullet(no):
         #　敵：4方向に向かって打つ
         if emy_type[no] == EMY_FIXED:
             if tmr%60 == 0:
+                snd_emy_bullet.play()
                 for a in range(0, 370, 90):
                     set_enemy(emy_x[no], emy_y[no], BUL_STRAIGHT_0, a+tmr%360, BUL_NORMAL_SPEED, BUL_SHIELD_1)
 
@@ -528,6 +550,7 @@ def set_bullet(no):
         # ボス：プレイヤーに向かって打つ
         if emy_type[no] == BOSS or emy_type[no] == BOSS_MUTEKI:
             if tmr%10 == 0:
+                snd_emy_bullet.play()
                 rand_num = random.randint(0, 1)
                 if rand_num == 0:
                     set_enemy(emy_x[no], emy_y[no], BUL_STRAIGHT_0, emy_a[no], BUL_NORMAL_SPEED, BUL_SHIELD_1)
@@ -536,21 +559,25 @@ def set_bullet(no):
         # 敵：設置タイプ
         if emy_type[no] == EMY_FIXED:
             if tmr%60 == 0:
+                snd_emy_bullet.play()
                 set_enemy(emy_x[no], emy_y[no], BUL_TRACKING, emy_a[no], BUL_LOW_SPEED, BUL_SHIELD_3)
         # 敵：追尾タイプ
         if emy_type[no] == EMY_TRACKING_1:
             if tmr%30 == 0:
+                snd_emy_bullet.play()
                 set_enemy(emy_x[no], emy_y[no], BUL_STRAIGHT_1, emy_a[no], BUL_LOW_SPEED, BUL_SHIELD_1)
 
     if idx == 6 and tmr > 10:
         # ボス：ランダムの角度に打つ
         if emy_type[no] == BOSS or emy_type[no] == BOSS_MUTEKI:
             if tmr%2 == 0:
+                snd_emy_bullet.play()
                 rand_a = random.randint(0, 360)
                 set_enemy(emy_x[no], emy_y[no], BUL_STRAIGHT_1, rand_a, BUL_HIGH_SPEED, BUL_SHIELD_1)
         # 敵：設置タイプ
         if emy_type[no] == EMY_FIXED:
             if tmr%15 == 0:
+                snd_emy_bullet.play()
                 for a in range(0, 370, 60):
                     set_enemy(emy_x[no], emy_y[no], BUL_STRAIGHT_0, a+tmr%360, BUL_NORMAL_SPEED, BUL_SHIELD_1)
                     
@@ -607,6 +634,7 @@ def draw_block(sc):
         if block_f[i] == True:
             # 黒いブロック + プレイヤーの弾が当たった時
             if block_type[i] == BLACK_BLOCK and block_d[i] == True:
+                snd_blk_damage.play()
                 block_d[i] = False
                 # 一瞬だけ白いボックスにして、ボックスにダメージがあることを表現
                 block_type[i] = WHITE_BLOCK
@@ -755,12 +783,25 @@ def clear_judge():
 def main():
     global idx, tmr
     global pl_x, pl_y, pl_shield, pl_muteki
+    global snd_pl_bullet, snd_pl_damage, snd_emy_bullet, snd_emy_damage, snd_blk_damage, snd_muteki
     
     pygame.init()
     pygame.display.set_caption("Hacking Game")
 
     screen = pygame.display.set_mode((SCREEN_SIZE, SCREEN_SIZE))
     clock = pygame.time.Clock()
+
+    # 音楽
+    pygame.mixer.music.load("music/Melancholia-Godmode.mp3")
+    pygame.mixer.music.play(-1)
+
+    # 効果音
+    snd_pl_bullet = pygame.mixer.Sound("sound/player_bullet.mp3")
+    snd_pl_damage = pygame.mixer.Sound("sound/player_damage.mp3")
+    snd_emy_bullet = pygame.mixer.Sound("sound/enemy_bullet.mp3")
+    snd_emy_damage = pygame.mixer.Sound("sound/enemy_damage.mp3")
+    snd_emy_muteki = pygame.mixer.Sound("sound/enemy_muteki.mp3")
+    snd_blk_damage = pygame.mixer.Sound("sound/block_damage.mp3")
 
     while True:
         tmr = tmr + 1
@@ -772,6 +813,7 @@ def main():
                 
         screen.fill(WHITE)
         key = pygame.key.get_pressed()
+
         
         # タイトル
         if idx == 0:
@@ -780,12 +822,11 @@ def main():
 
             if key[pygame.K_SPACE] == 1:
                 course_clear = False
-                idx = 6
-                tmr = 1
+                idx = 1
+                tmr = 0
 
         # ゲームプレイ
-        if idx >= 1:
-            print(pl_shield)
+        elif idx >= 1:
             # 初期設定
             if tmr == 1:
                 pl_x = FIELD_SIZE/2
@@ -817,7 +858,7 @@ def main():
                 # ボスを倒した場合
                 if clear_judge() == True:
                     course_clear = True
-                    tmr = 1
+                    tmr = 0
                     
             # ボスを倒す -> コースクリア表示
             if course_clear == True:
@@ -829,7 +870,7 @@ def main():
                 tmr = 0
 
         # ゲームオーバー
-        if idx == -2:
+        elif idx == -2:
             if tmr == 1:
                 move_missile(screen)
 
@@ -841,7 +882,7 @@ def main():
                 tmr = 0
 
         # ゲームクリア
-        if idx == -3:
+        elif idx == -3:
             move_missile(screen)
 
             if tmr > 20:
