@@ -56,6 +56,7 @@ snd_blk_damage = None   # ブロックのダメージ音
 # ******************** 変数／定数の宣言 ********************
 idx = 0
 tmr = 0
+img_size = 0
 
 FIELD_SIZE = 960
 SCREEN_SIZE = 960
@@ -235,7 +236,7 @@ def move_player(sc, key):
     y_dis = mouseY - pl_y
     pl_a = math.degrees(math.atan2(y_dis, x_dis))
     # 回転させた画像
-    img_rz = pygame.transform.rotozoom(img_player, -90-pl_a, 1.0)
+    img_rz = pygame.transform.rotozoom(img_player, -90-pl_a, img_size)
 
     # マウス入力
     mBtn_1, mBtn_2, mBtn_3 = pygame.mouse.get_pressed()
@@ -255,8 +256,8 @@ def move_player(sc, key):
     # 敵の弾とのヒットチェック
     for i in range(ENEMY_MAX):
         if emy_f[i] == True:
-            w = img_enemy[emy_type[i]].get_width()
-            h = img_enemy[emy_type[i]].get_height()
+            w = img_enemy[emy_type[i]].get_width() * img_size
+            h = img_enemy[emy_type[i]].get_height() * img_size
             r = int((w+h)/4 + (80+80)/4)
             # ヒットチェック
             if get_dis(emy_x[i], emy_y[i], pl_x, pl_y) < r*r:
@@ -301,13 +302,13 @@ def move_missile(sc): # 弾の移動
                 msl_x[i] = move_x
                 msl_y[i] = move_y
 
-                img_rz = pygame.transform.rotozoom(img_weapon, -90-msl_a[i], 1.0)
+                img_rz = pygame.transform.rotozoom(img_weapon, -90-msl_a[i], img_size)
                 sc.blit(img_rz, [msl_x[i]-img_rz.get_width()/2, msl_y[i]-img_rz.get_height()/2])
 
                 if msl_y[i] < LINE_T or LINE_B < msl_y[i] or msl_x[i] < LINE_L or LINE_R < msl_x[i]:
                     msl_f[i] = False
 
-                if msl_p[i] > 20:
+                if msl_p[i] > 20 * img_size:
                     msl_f[i] = False
 
             else:
@@ -455,8 +456,8 @@ def move_enemy(sc):
 
             # プレイヤーの弾とのヒットチェック
             if emy_type[i] > 0:
-                w = img_enemy[emy_type[i]].get_width()
-                h = img_enemy[emy_type[i]].get_height()
+                w = img_enemy[emy_type[i]].get_width() * img_size
+                h = img_enemy[emy_type[i]].get_height() * img_size
                 r = int((w+h)/4)+15
 
                 for j in range(MISSILE_MAX):
@@ -485,11 +486,11 @@ def move_enemy(sc):
                 
             # 回転させた画像
             if emy_type[i] == BOSS_MUTEKI: # BOSS + 無敵の場合
-                img_rz = pygame.transform.rotozoom(img_enemy[emy_type[i]+muteki], 0, 1.0)
+                img_rz = pygame.transform.rotozoom(img_enemy[emy_type[i]+muteki], 0, img_size)
             elif emy_type[i] == EMY_FIXED: # 固定の敵
-                img_rz = pygame.transform.rotozoom(img_enemy[emy_type[i]], 0, 1.0)
+                img_rz = pygame.transform.rotozoom(img_enemy[emy_type[i]], 0, img_size)
             else:
-                img_rz = pygame.transform.rotozoom(img_enemy[emy_type[i]], -90-emy_a[i], 1.0)
+                img_rz = pygame.transform.rotozoom(img_enemy[emy_type[i]], -90-emy_a[i], img_size)
                 
             # 敵の機体を描く
             sc.blit(img_rz, [emy_x[i]-img_rz.get_width()/2, emy_y[i]-img_rz.get_height()/2])
@@ -641,7 +642,8 @@ def draw_block(sc):
                 change_color = True
                 
             # ブロックの表示
-            sc.blit(img_block[block_type[i]],
+            img_rz = pygame.transform.rotozoom(img_block[block_type[i]], 0, img_size)
+            sc.blit(img_rz,
                 [block_x[i]-img_block[block_type[i]].get_width()/2,
                  block_y[i]-img_block[block_type[i]].get_height()/2])
 
@@ -659,7 +661,7 @@ def check_block(cx, cy, di, dot, pl_bul):
         if block_f[i] == True:
             # プレイヤーとボックスの接触
             if di == DIR_UP: # 上方向
-                if get_dis(cx, cy-dot, block_x[i], block_y[i]) < PIXEL_SIZE*PIXEL_SIZE:
+                if get_dis(cx, cy-dot, block_x[i], block_y[i]) < PIXEL_SIZE**2 * img_size**2:
                     # 赤いブロックに接触した時 -> プレイヤーはダメージを受ける
                     if block_type[i] == RED_BLOCK:
                         if pl_muteki > 0:
@@ -668,7 +670,7 @@ def check_block(cx, cy, di, dot, pl_bul):
                         pl_muteki = 60
                     return True
             elif di == DIR_DOWN: # 下方向
-                if get_dis(cx, cy+dot, block_x[i], block_y[i]) < PIXEL_SIZE*PIXEL_SIZE:
+                if get_dis(cx, cy+dot, block_x[i], block_y[i]) < PIXEL_SIZE**2 * img_size**2:
                     # 赤いブロックに接触した時 -> プレイヤーはダメージを受ける
                     if block_type[i] == RED_BLOCK:
                         if pl_muteki > 0:
@@ -677,7 +679,7 @@ def check_block(cx, cy, di, dot, pl_bul):
                         pl_muteki = 60
                     return True
             elif di == DIR_LEFT: # 左方向
-                if get_dis(cx-dot, cy, block_x[i], block_y[i]) < PIXEL_SIZE*PIXEL_SIZE:
+                if get_dis(cx-dot, cy, block_x[i], block_y[i]) < PIXEL_SIZE**2 * img_size**2:
                     # 赤いブロックに接触した時 -> プレイヤーはダメージを受ける
                     if block_type[i] == RED_BLOCK:
                         if pl_muteki > 0:
@@ -686,7 +688,7 @@ def check_block(cx, cy, di, dot, pl_bul):
                         pl_muteki = 60
                     return True
             elif di == DIR_RIGHT: # 右方向
-                if get_dis(cx+dot, cy, block_x[i], block_y[i]) < PIXEL_SIZE*PIXEL_SIZE:
+                if get_dis(cx+dot, cy, block_x[i], block_y[i]) < PIXEL_SIZE**2 * img_size**2:
                     # 赤いブロックに接触した時 -> プレイヤーはダメージを受ける
                     if block_type[i] == RED_BLOCK:
                         if pl_muteki > 0:
@@ -696,7 +698,7 @@ def check_block(cx, cy, di, dot, pl_bul):
                     return True
             # プレイヤー意外とボックスの接触
             else:
-                if get_dis(cx, cy, block_x[i], block_y[i]) < PIXEL_SIZE*PIXEL_SIZE:
+                if get_dis(cx, cy, block_x[i], block_y[i]) < PIXEL_SIZE**2 * img_size**2:
                     # プレイヤーの弾が黒いブロックに当たった場合は、破壊可能
                     if pl_bul == True and block_type[i] == BLACK_BLOCK:
                         block_b[i] = block_b[i] + 1
@@ -730,7 +732,8 @@ def draw_effect(sc):
     for i in range(EFFECT_MAX):
         if eff_p[i] > 0:
             img = img_explode[eff_p[i]]
-            sc.blit(img, [eff_x[i]-img.get_width()/2, eff_y[i]-img.get_height()/2])
+            img_rz = pygame.transform.rotozoom(img, 0, img_size)
+            sc.blit(img_rz, [eff_x[i]-img_rz.get_width()/2, eff_y[i]-img_rz.get_height()/2])
 
             if eff_p[i] >= 6:
                 for j in range(ENEMY_MAX):
@@ -738,7 +741,7 @@ def draw_effect(sc):
                         # 無敵状態のボス以外
                         if emy_type[j] != BOSS_MUTEKI:
                             # 爆発の範囲に敵がいる場合、敵と敵の弾にダメージ
-                            if get_dis(emy_x[j], emy_y[j], pl_x, pl_y) < (100+200*(eff_p[i]-6))/2 * (100+200*(eff_p[i]-6))/2:
+                            if get_dis(emy_x[j], emy_y[j], pl_x, pl_y) < (100+200*(eff_p[i]-6))/2*img_size * (100+200*(eff_p[i]-6))/2*img_size:
                                 emy_shield[j] -= 1
                                 set_effect(emy_x[j], emy_y[j], True)
                             if emy_shield[j] <= 0:
@@ -781,7 +784,7 @@ def clear_judge():
 
 # ******************** メインループ ********************
 def main():
-    global idx, tmr
+    global idx, tmr, img_size
     global pl_x, pl_y, pl_shield, pl_muteki
     global snd_pl_bullet, snd_pl_damage, snd_emy_bullet, snd_emy_damage, snd_blk_damage, snd_emy_muteki
     
@@ -813,6 +816,9 @@ def main():
                 
         screen.fill(WHITE)
         key = pygame.key.get_pressed()
+
+        if idx <= 6:
+            img_size = 1.0
 
         
         # タイトル
