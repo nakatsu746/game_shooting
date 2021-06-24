@@ -114,11 +114,11 @@ EMY_TRACKING_1 = 8
 BOSS_SPEED = 1
 EMY_SPEED_0 = 0
 EMY_LOW_SPEED = 2
-EMY_NORMAL_SPEED = 6
+EMY_NORMAL_SPEED = 5
 EMY_HIGH_SPEED = 10
 # 敵のシールド
 EMY_SHIELD = 5
-BOSS_SHIELD = 15
+BOSS_SHIELD = 20
 # =============== ENEMY(BULLET) ===============
 # 弾(敵)
 EFFECT_MAX = 100            # 爆発の最大数
@@ -333,7 +333,7 @@ def bring_enemy(): # 敵を出す
         set_enemy(FIELD_SIZE/2, 100, BOSS_MUTEKI, 0, BOSS_SPEED, BOSS_SHIELD)
         # 敵：追尾タイプ
         for x in range(80, 890, 100):
-            set_enemy(x, 200, EMY_TRACKING_0, 0, EMY_NORMAL_SPEED, EMY_SHIELD)
+            set_enemy(x, 200, EMY_TRACKING_0, 0, EMY_LOW_SPEED, EMY_SHIELD)
 
     if idx == 4 and tmr == 1:
         # ボス
@@ -360,7 +360,7 @@ def bring_enemy(): # 敵を出す
 
     if idx == 6 and tmr == 1:
         # ボス
-        set_enemy(FIELD_SIZE/2, 100, BOSS_MUTEKI, 0, EMY_HIGH_SPEED, BOSS_SHIELD)
+        set_enemy(FIELD_SIZE/2, 100, BOSS_MUTEKI, 0, BOSS_SPEED, BOSS_SHIELD)
         # 敵：設置タイプ
         pos = 150
         set_enemy(pos, pos, EMY_FIXED, 0, EMY_SPEED_0, EMY_SHIELD)
@@ -541,7 +541,7 @@ def set_bullet(no):
                 set_enemy(emy_x[no], emy_y[no], BUL_STRAIGHT_1, emy_a[no], BUL_NORMAL_SPEED, BUL_SHIELD_1)
         #　敵：4方向に向かって打つ
         if emy_type[no] == EMY_FIXED:
-            if tmr%60 == 0:
+            if tmr%40 == 0:
                 snd_emy_bullet.play()
                 for a in range(0, 370, 90):
                     set_enemy(emy_x[no], emy_y[no], BUL_STRAIGHT_0, a+tmr%360, BUL_NORMAL_SPEED, BUL_SHIELD_1)
@@ -558,7 +558,7 @@ def set_bullet(no):
                     set_enemy(emy_x[no], emy_y[no], BUL_STRAIGHT_1, emy_a[no], BUL_NORMAL_SPEED, BUL_SHIELD_1)
         # 敵：設置タイプ
         if emy_type[no] == EMY_FIXED:
-            if tmr%60 == 0:
+            if tmr%90 == 0:
                 snd_emy_bullet.play()
                 set_enemy(emy_x[no], emy_y[no], BUL_TRACKING, emy_a[no], BUL_LOW_SPEED, BUL_SHIELD_3)
         # 敵：追尾タイプ
@@ -576,7 +576,7 @@ def set_bullet(no):
                 set_enemy(emy_x[no], emy_y[no], BUL_STRAIGHT_1, rand_a, BUL_HIGH_SPEED, BUL_SHIELD_1)
         # 敵：設置タイプ
         if emy_type[no] == EMY_FIXED:
-            if tmr%15 == 0:
+            if tmr%60 == 0:
                 snd_emy_bullet.play()
                 for a in range(0, 370, 60):
                     set_enemy(emy_x[no], emy_y[no], BUL_STRAIGHT_0, a+tmr%360, BUL_NORMAL_SPEED, BUL_SHIELD_1)
@@ -783,7 +783,7 @@ def clear_judge():
 def main():
     global idx, tmr
     global pl_x, pl_y, pl_shield, pl_muteki
-    global snd_pl_bullet, snd_pl_damage, snd_emy_bullet, snd_emy_damage, snd_blk_damage, snd_muteki
+    global snd_pl_bullet, snd_pl_damage, snd_emy_bullet, snd_emy_damage, snd_blk_damage, snd_emy_muteki
     
     pygame.init()
     pygame.display.set_caption("Hacking Game")
@@ -822,7 +822,7 @@ def main():
 
             if key[pygame.K_SPACE] == 1:
                 course_clear = False
-                idx = 1
+                idx = 4
                 tmr = 0
 
         # ゲームプレイ
